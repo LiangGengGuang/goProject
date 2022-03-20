@@ -9,13 +9,13 @@ import (
 
 /*
 	服务器实体对象
- */
+*/
 type Server struct {
 	Name       string
 	TcpVersion string
 	IP         string
 	Port       int
-	Router     ziface.IRouter
+	MsgHandler ziface.IMsgHandler
 }
 
 // NewServer 初始化server模块
@@ -25,7 +25,7 @@ func NewServer() ziface.IServer {
 		TcpVersion: "tcp4",
 		IP:         utils.GlobalObject.Host,
 		Port:       utils.GlobalObject.TcpPort,
-		Router:     nil,
+		MsgHandler: NewMsgHandler(),
 	}
 }
 
@@ -41,7 +41,7 @@ func (s *Server) TCPListener(listener net.TCPListener) {
 		}
 
 		//将处理新链接的业务与conn进行绑定
-		connection := NewConnection(conn, connID, s.Router)
+		connection := NewConnection(conn, connID, s.MsgHandler)
 		connID++
 
 		//启动当前链接的业务处理
@@ -94,7 +94,7 @@ func (s *Server) Run() {
 	select {}
 }
 
-// AddRouter 给当前服务注册一个路由方法，共客户端链接使用
-func (s *Server) AddRouter(router ziface.IRouter) {
-	s.Router = router
+// AddMsgHandler 给当前服务注册一个路由方法到消息管理中，供客户端链接使用
+func (s *Server) AddMsgHandler(msgID uint32, router ziface.IRouter) {
+	s.MsgHandler.AddRouter(msgID, router)
 }

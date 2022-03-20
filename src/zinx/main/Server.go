@@ -15,7 +15,7 @@ type PingRouter struct {
 }
 
 // PreHandle 处理conn业务之前的钩子方法
-//func (this *PingRouter) PreHandle(req ziface.IRequest) {
+//func (r *PingRouter) PreHandle(req ziface.IRequest) {
 //
 //	if _, err := req.GetConnection().GetTCPConn().Write([]byte("PreHandle...\n")); err != nil {
 //		fmt.Println("PreHandle error:", err)
@@ -23,29 +23,45 @@ type PingRouter struct {
 //}
 
 // Handle 处理conn业务方法
-func (this *PingRouter) Handle(req ziface.IRequest) {
+func (r *PingRouter) Handle(req ziface.IRequest) {
 
 	fmt.Println("recv from client: msgId=", req.GetMsgId(), "msg=", string(req.GetData()))
 
-	if err := req.GetConnection().SendMsg(req.GetMsgId(), []byte("Ping...Ping...Ping...")); err != nil {
+	if err := req.GetConnection().SendMsg(200, []byte("Ping...Ping...Ping...")); err != nil {
 		fmt.Println("sendMsg error", err)
 	}
 }
 
 // PostHandle 处理conn业务之后的钩子方法
-//func (this *PingRouter) PostHandle(req ziface.IRequest) {
+//func (r *PingRouter) PostHandle(req ziface.IRequest) {
 //
 //	if _, err := req.GetConnection().GetTCPConn().Write([]byte("PostHandle...\n")); err != nil {
 //		fmt.Println("PostHandle error:", err)
 //	}
 //}
 
+type CustomRouter struct {
+	znet.BaseRouter
+}
+
+// CustomHandle 自定义业务方法
+func (c *CustomRouter) Handle(req ziface.IRequest) {
+
+	fmt.Println("recv from client: msgId=", req.GetMsgId(), "msg=", string(req.GetData()))
+
+	if err := req.GetConnection().SendMsg(201, []byte("welcome to used zinx App")); err != nil {
+		fmt.Println("sendMsg error", err)
+	}
+}
+
 func main() {
 
 	server := znet.NewServer()
 
 	//添加router
-	server.AddRouter(&PingRouter{})
+	server.AddMsgHandler(0, &PingRouter{})
+	//添加router
+	server.AddMsgHandler(1, &CustomRouter{})
 
 	//运行服务器
 	server.Run()

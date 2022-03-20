@@ -41,10 +41,10 @@ func (c *GlobalObj) Reload() {
 
 //读取用户配置好的zinx.json文件
 func init() {
-	GlobalObject := &GlobalObj{
+	GlobalObject = &GlobalObj{
 		Host:           "0.0.0.0",
 		TcpPort:        8889,
-		Name:           "Zinx",
+		Name:           "zinx",
 		Version:        "0.4",
 		MaxCon:         1000,
 		MaxPackageSize: 4096,

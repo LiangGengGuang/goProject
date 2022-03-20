@@ -39,14 +39,14 @@ func main() {
 		dp := znet.NewDataPackage()
 
 		//消息一
-		pack1, err := dp.Pack(znet.NewMessage(1, []byte("zinx app client msg")))
+		pack1, err := dp.Pack(znet.NewMessage(0, []byte("ping zinx APP")))
 		if err != nil {
 			fmt.Println("Pack error", err)
 			break
 		}
 
 		//消息二
-		pack2, err := dp.Pack(znet.NewMessage(2, []byte("hello world")))
+		pack2, err := dp.Pack(znet.NewMessage(1, []byte("used zinx APP")))
 		if err != nil {
 			fmt.Println("Pack error", err)
 			break
@@ -60,7 +60,7 @@ func main() {
 		}
 
 		headLen := make([]byte, dp.GetHeadLength())
-		if _, err := io.ReadFull(coon, headLen); err != nil {
+		if _, err := io.ReadFull(coon, headLen); err != nil && err != io.EOF {
 			fmt.Println("ReadFull error", err)
 			break
 		}
@@ -75,7 +75,7 @@ func main() {
 			//根据msg长度二次读取消息内容
 			msg := msgHead.(*znet.Message)
 			msg.Data = make([]byte, msg.GetMsgLen())
-			if _, err := io.ReadFull(coon, msg.Data); err != nil {
+			if _, err := io.ReadFull(coon, msg.Data); err != nil && err != io.EOF {
 				fmt.Println("ReadFull error", err)
 				break
 			}

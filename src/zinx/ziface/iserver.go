@@ -14,6 +14,6 @@ type IServer interface {
 	// Run 运行
 	Run()
 
-	// AddRouter 给当前服务注册一个路由方法，共客户端链接使用
-	AddRouter(IRouter)
+	// AddMsgHandler 给当前服务注册一个路由方法，共客户端链接使用
+	AddMsgHandler(uint32, IRouter)
 }

@@ -21,19 +21,19 @@ type Connection struct {
 	isClose bool
 	//告知当前链接已经停止/退出
 	ExitChan chan bool
-	//该链接处理Router
-	Router ziface.IRouter
+	//该链接消息管理
+	MsgHandler ziface.IMsgHandler
 }
 
 // NewConnection 初始化链路模块方法
-func NewConnection(conn *net.TCPConn, connID uint32, router ziface.IRouter) ziface.IConnection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
 
 	return &Connection{
-		Conn:     conn,
-		ConnID:   connID,
-		isClose:  false,
-		Router:   router,
-		ExitChan: make(chan bool, 1),
+		Conn:       conn,
+		ConnID:     connID,
+		isClose:    false,
+		MsgHandler: msgHandler,
+		ExitChan:   make(chan bool, 1),
 	}
 }
 
@@ -50,7 +50,7 @@ func (c *Connection) startReader() {
 
 		//读取id和消息长度
 		headData := make([]byte, dp.GetHeadLength())
-		if _, err := io.ReadFull(c.GetTCPConn(), headData); err != nil {
+		if _, err := io.ReadFull(c.GetTCPConn(), headData); err != nil && err != io.EOF {
 			fmt.Println("ReadFull error", err)
 			break
 		}
@@ -68,7 +68,7 @@ func (c *Connection) startReader() {
 
 			//根据msg长度二次读取消息内容
 			data = make([]byte, msg.GetMsgLen())
-			if _, err := io.ReadFull(c.GetTCPConn(), data); err != nil {
+			if _, err := io.ReadFull(c.GetTCPConn(), data); err != nil && err != io.EOF {
 				fmt.Println("read msg data error", err)
 				break
 			}
@@ -83,11 +83,7 @@ func (c *Connection) startReader() {
 		}
 
 		//从路由找到注册绑定的conn对应的应用
-		go func(request ziface.IRequest) {
-			c.Router.PreHandle(request)
-			c.Router.Handle(request)
-			c.Router.PostHandle(request)
-		}(&req)
+		go c.MsgHandler.DoMsgHandler(&req)
 	}
 }
 
