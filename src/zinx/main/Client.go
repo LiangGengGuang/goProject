@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"time"
+	"zinx/znet"
 )
 
 type Client struct {
@@ -35,21 +36,53 @@ func main() {
 		return
 	}
 	for {
-		if _, err := coon.Write([]byte("client link request\n")); err != nil {
-			fmt.Println("write err:", err)
-			return
+		dp := znet.NewDataPackage()
+
+		//消息一
+		pack1, err := dp.Pack(znet.NewMessage(1, []byte("zinx app client msg")))
+		if err != nil {
+			fmt.Println("Pack error", err)
+			break
 		}
 
-		buff := make([]byte, 512)
-		read, err := coon.Read(buff)
-		if err != nil && err != io.EOF {
-			fmt.Println("write err:", err)
-			return
+		//消息二
+		pack2, err := dp.Pack(znet.NewMessage(2, []byte("hello world")))
+		if err != nil {
+			fmt.Println("Pack error", err)
+			break
 		}
-		fmt.Println("===============server call back")
-		fmt.Printf("%s", buff)
-		fmt.Println("read=", read)
 
+		//模拟TCP粘包
+		pack := append(pack1, pack2...)
+		if _, err := coon.Write(pack); err != nil {
+			fmt.Println("write err:", err)
+			break
+		}
+
+		headLen := make([]byte, dp.GetHeadLength())
+		if _, err := io.ReadFull(coon, headLen); err != nil {
+			fmt.Println("ReadFull error", err)
+			break
+		}
+
+		msgHead, err := dp.Unpack(headLen)
+		if err != nil {
+			fmt.Println("Pack error", err)
+			break
+		}
+
+		if msgHead.GetMsgLen() > 0 {
+			//根据msg长度二次读取消息内容
+			msg := msgHead.(*znet.Message)
+			msg.Data = make([]byte, msg.GetMsgLen())
+			if _, err := io.ReadFull(coon, msg.Data); err != nil {
+				fmt.Println("ReadFull error", err)
+				break
+			}
+			fmt.Println("===============server call back===============")
+			fmt.Printf("msgId=%d\n", msg.GetMsgId())
+			fmt.Printf("msgData=%s\n", msg.GetMsgData())
+		}
 		time.Sleep(1 * time.Second)
 	}
 }
