@@ -5,12 +5,12 @@ package ziface
 */
 type IRouter interface {
 
-	//处理conn业务之前的钩子方法
-	PreHandle(req IRequest)
+	// PreHandle 处理conn业务之前的钩子方法
+	PreHandle(IRequest)
 
-	//处理conn业务方法
-	Handle(req IRequest)
+	// Handle 处理conn业务方法
+	Handle(IRequest)
 
-	//处理conn业务之后的钩子方法
-	PostHandle(req IRequest)
+	// PostHandle 处理conn业务之后的钩子方法
+	PostHandle(IRequest)
 }

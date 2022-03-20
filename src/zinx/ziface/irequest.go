@@ -1,10 +1,16 @@
 package ziface
 
+/*
+	链接请求载体
+*/
 type IRequest interface {
 
-	//获取请求链接
+	// GetConnection 获取请求链接
 	GetConnection() IConnection
 
-	//获取请求数据
+	// GetData 获取请求消息数据
 	GetData() []byte
+
+	// GetMsgId 获取请求数据ID
+	GetMsgId() uint32
 }
