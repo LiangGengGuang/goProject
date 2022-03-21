@@ -28,7 +28,7 @@ func (r *PingRouter) Handle(req ziface.IRequest) {
 	fmt.Println("recv from client: msgId=", req.GetMsgId(), "msg=", string(req.GetData()))
 
 	if err := req.GetConnection().SendMsg(200, []byte("Ping...Ping...Ping...")); err != nil {
-		fmt.Println("sendMsg error", err)
+		fmt.Println("sendMsg error:", err)
 	}
 }
 
@@ -44,13 +44,13 @@ type CustomRouter struct {
 	znet.BaseRouter
 }
 
-// CustomHandle 自定义业务方法
+// Handle 自定义业务方法
 func (c *CustomRouter) Handle(req ziface.IRequest) {
 
 	fmt.Println("recv from client: msgId=", req.GetMsgId(), "msg=", string(req.GetData()))
 
 	if err := req.GetConnection().SendMsg(201, []byte("welcome to used zinx App")); err != nil {
-		fmt.Println("sendMsg error", err)
+		fmt.Println("sendMsg error:", err)
 	}
 }
 

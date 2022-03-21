@@ -21,6 +21,8 @@ type Connection struct {
 	isClose bool
 	//告知当前链接已经停止/退出
 	ExitChan chan bool
+	//无缓冲，用于读写之间的消息通信
+	msgChan chan []byte
 	//该链接消息管理
 	MsgHandler ziface.IMsgHandler
 }
@@ -33,6 +35,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 		ConnID:     connID,
 		isClose:    false,
 		MsgHandler: msgHandler,
+		msgChan:    make(chan []byte),
 		ExitChan:   make(chan bool, 1),
 	}
 }
@@ -40,7 +43,8 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 //读取链接请求数据
 func (c *Connection) startReader() {
 
-	defer fmt.Println("connID =", c.ConnID, "reader is exit,remote is = ", c.RemoteAddr().String())
+	fmt.Println("[reader goroutine is running]")
+	defer fmt.Println("reader goroutine exit,ConnID:", c.ConnID, "RemoteAddr", c.RemoteAddr().String())
 	defer c.Stop()
 
 	for {
@@ -50,15 +54,15 @@ func (c *Connection) startReader() {
 
 		//读取id和消息长度
 		headData := make([]byte, dp.GetHeadLength())
-		if _, err := io.ReadFull(c.GetTCPConn(), headData); err != nil && err != io.EOF {
-			fmt.Println("ReadFull error", err)
+		if _, err := io.ReadFull(c.GetTCPConn(), headData); err != nil {
+			fmt.Println("read msg head error:", err)
 			break
 		}
 
 		//拆包
 		msg, err := dp.Unpack(headData)
 		if err != nil {
-			fmt.Println("Unpacking error", err)
+			fmt.Println("Unpacking error:", err)
 			break
 		}
 
@@ -68,8 +72,8 @@ func (c *Connection) startReader() {
 
 			//根据msg长度二次读取消息内容
 			data = make([]byte, msg.GetMsgLen())
-			if _, err := io.ReadFull(c.GetTCPConn(), data); err != nil && err != io.EOF {
-				fmt.Println("read msg data error", err)
+			if _, err := io.ReadFull(c.GetTCPConn(), data); err != nil {
+				fmt.Println("read msg data error:", err)
 				break
 			}
 		}
@@ -87,6 +91,33 @@ func (c *Connection) startReader() {
 	}
 }
 
+//向链接请求写入数据发送给客户端
+func (c *Connection) startWriter() {
+
+	fmt.Println("[writer goroutine is running]")
+
+	defer fmt.Println("writer goroutine exit,ConnID:", c.ConnID, "RemoteAddr", c.RemoteAddr().String())
+
+	for {
+		select {
+		case data, ok := <-c.msgChan:
+			if ok {
+				if _, err := c.Conn.Write(data); err != nil {
+					fmt.Println("sendMsg write error:", err)
+					break
+				}
+			} else {
+				fmt.Println("msgBuffChan is Closed")
+				break
+			}
+
+		case <-c.ExitChan:
+			//代表Reader已经退出，Reader一并退出
+			return
+		}
+	}
+}
+
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	if c.isClose {
 		return errors.New("Connection is closed ")
@@ -98,15 +129,12 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	//封装
 	msg, err := dp.Pack(NewMessage(msgId, data))
 	if err != nil {
-		fmt.Println("Packing error,msgId is=", err)
+		fmt.Println("msgId is=", msgId, "Packing error:", err)
 		return errors.New("pack msg error")
 	}
 
-	//发送消息
-	if _, err := c.Conn.Write(msg); err != nil && err != io.EOF {
-		fmt.Println("writing msgId = ", msgId, "error", err)
-		return errors.New("conn write error")
-	}
+	//消息发给管道
+	c.msgChan <- msg
 	return nil
 }
 
@@ -118,17 +146,27 @@ func (c *Connection) Start() {
 	go c.startReader()
 
 	//TODO 启动从当前链接写业务数据
+	go c.startWriter()
 }
 
 func (c *Connection) Stop() {
 
-	fmt.Sprintln("Coon stop,ConnID:", c.ConnID)
+	fmt.Println("Coon stop,ConnID:", c.ConnID)
+
 	if c.isClose {
 		return
 	}
 	c.isClose = true
+
+	//关闭socket链接
 	c.Conn.Close()
+
+	//告知Writer关闭
+	c.ExitChan <- true
+
+	//回收资源
 	close(c.ExitChan)
+	close(c.msgChan)
 }
 
 func (c *Connection) GetTCPConn() *net.TCPConn {

@@ -43,7 +43,7 @@ func (c *GlobalObj) Reload() {
 func init() {
 	GlobalObject = &GlobalObj{
 		Host:           "0.0.0.0",
-		TcpPort:        8889,
+		TcpPort:        8989,
 		Name:           "zinx",
 		Version:        "0.4",
 		MaxCon:         1000,

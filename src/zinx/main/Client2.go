@@ -9,12 +9,12 @@ import (
 	"zinx/znet"
 )
 
-var serverIp string
-var serverPort int
+var serverIp2 string
+var serverPort2 int
 
 func init() {
-	flag.StringVar(&serverIp, "h", "0.0.0.0", "链接服务器ip")
-	flag.IntVar(&serverPort, "p", 8989, "链接服务器port")
+	flag.StringVar(&serverIp2, "h", "0.0.0.0", "链接服务器ip")
+	flag.IntVar(&serverPort2, "p", 8989, "链接服务器port")
 
 }
 
@@ -22,7 +22,7 @@ func main() {
 	//命令行解析
 	flag.Parse()
 
-	coon, err := net.Dial("tcp", fmt.Sprintf("%s:%d", serverIp, serverPort))
+	coon, err := net.Dial("tcp", fmt.Sprintf("%s:%d", serverIp2, serverPort2))
 	if err != nil {
 		fmt.Println("dial TCP addr err:", err)
 		return
@@ -30,22 +30,12 @@ func main() {
 	for {
 		dp := znet.NewDataPackage()
 
-		//消息一
-		pack1, err := dp.Pack(znet.NewMessage(0, []byte("ping zinx APP")))
+		//消息
+		pack, err := dp.Pack(znet.NewMessage(1, []byte("used zinx APP")))
 		if err != nil {
 			fmt.Println("Pack error:", err)
 			break
 		}
-
-		//消息二
-		pack2, err := dp.Pack(znet.NewMessage(1, []byte("used zinx APP")))
-		if err != nil {
-			fmt.Println("Pack error:", err)
-			break
-		}
-
-		//模拟TCP粘包
-		pack := append(pack1, pack2...)
 		if _, err := coon.Write(pack); err != nil {
 			fmt.Println("write err:", err)
 			break
@@ -53,13 +43,13 @@ func main() {
 
 		headLen := make([]byte, dp.GetHeadLength())
 		if _, err := io.ReadFull(coon, headLen); err != nil {
-			fmt.Println("ReadFull error", err)
+			fmt.Println("ReadFull error:", err)
 			break
 		}
 
 		msgHead, err := dp.Unpack(headLen)
 		if err != nil {
-			fmt.Println("Pack error", err)
+			fmt.Println("Pack error:", err)
 			break
 		}
 
@@ -68,7 +58,7 @@ func main() {
 			msg := msgHead.(*znet.Message)
 			msg.Data = make([]byte, msg.GetMsgLen())
 			if _, err := io.ReadFull(coon, msg.Data); err != nil {
-				fmt.Println("ReadFull error", err)
+				fmt.Println("ReadFull error:", err)
 				break
 			}
 			fmt.Println("===============server call back===============")
