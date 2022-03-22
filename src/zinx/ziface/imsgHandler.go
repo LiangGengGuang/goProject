@@ -5,9 +5,15 @@ package ziface
 */
 type IMsgHandler interface {
 
-	//调度/执行对应router消息处理方法
+	// DoMsgHandler 调度/执行对应router消息处理方法
 	DoMsgHandler(IRequest)
 
-	//为消息添加具体的处理逻辑
+	// AddRouter 为消息添加具体的处理逻辑
 	AddRouter(uint32, IRouter)
+
+	// StartWorkPool 开启工作池
+	StartWorkPool()
+
+	// SendMsgToTaskQueue 将请求消息传递给工作流
+	SendMsgToTaskQueue(IRequest)
 }

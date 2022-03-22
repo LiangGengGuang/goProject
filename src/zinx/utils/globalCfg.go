@@ -11,13 +11,15 @@ import (
 	一些参数通过zinx.json由用户自定义配置
 */
 type GlobalObj struct {
-	TcpServer      ziface.IServer //当前zinx全局的server对象
-	Host           string         //当前zinx监听的IP对象
-	TcpPort        int            //当前zinx监听的端口对象
-	Name           string         //当前zinx服务的名称
-	Version        string         //当前zinx服务的版本号
-	MaxCon         int            //当前zinx服务的最大链接数
-	MaxPackageSize uint32         //当前zinx服务数据库最大值
+	TcpServer         ziface.IServer //当前zinx全局的server对象
+	Host              string         //当前zinx监听的IP对象
+	TcpPort           int            //当前zinx监听的端口对象
+	Name              string         //当前zinx服务的名称
+	Version           string         //当前zinx服务的版本号
+	MaxCon            int            //当前zinx服务的最大链接数
+	MaxPackageSize    uint32         //当前zinx服务数据库最大值
+	WorkerPoolSize    uint32         //当前zinx服务工作池数开辟的goroutine数量
+	MaxWorkerPoolSize uint32         //当前zinx服务工作池数支持开辟的最大goroutine数量
 }
 
 /*
@@ -42,12 +44,14 @@ func (c *GlobalObj) Reload() {
 //读取用户配置好的zinx.json文件
 func init() {
 	GlobalObject = &GlobalObj{
-		Host:           "0.0.0.0",
-		TcpPort:        8989,
-		Name:           "zinx",
-		Version:        "0.4",
-		MaxCon:         1000,
-		MaxPackageSize: 4096,
+		Host:              "0.0.0.0",
+		TcpPort:           8989,
+		Name:              "zinx",
+		Version:           "0.4",
+		MaxCon:            1000,
+		MaxPackageSize:    4096,
+		WorkerPoolSize:    10,
+		MaxWorkerPoolSize: 1024,
 	}
 	//调用读取外置配置文件
 	GlobalObject.Reload()

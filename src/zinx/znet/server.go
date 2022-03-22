@@ -56,6 +56,10 @@ func (s *Server) Start() {
 
 	//获取tcp的address
 	go func() {
+
+		//TODO 启动工作池
+		s.MsgHandler.StartWorkPool()
+
 		addr, err := net.ResolveTCPAddr(s.TcpVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
 		if err != nil {
 			fmt.Println("resolve TCP addr err：", err)

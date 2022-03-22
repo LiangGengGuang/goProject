@@ -1,7 +1,8 @@
 {
-  "Name":           "Zinx App",
-  "Host":           "127.0.0.1",
-  "TcpPort":        8989,
-  "MaxCon":         3,
-  "MaxPackageSize": 4096
+  "Name": "Zinx App",
+  "Host": "127.0.0.1",
+  "TcpPort": 8989,
+  "MaxCon": 3,
+  "MaxPackageSize": 4096,
+  "WorkerPoolSize": 10
 }
