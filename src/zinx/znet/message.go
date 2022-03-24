@@ -12,7 +12,7 @@ type Message struct {
 	//消息长度
 	MsgLen uint32
 	//消息内容
-	Data []byte
+	data []byte
 }
 
 // NewMessage 初始化消息对象
@@ -21,7 +21,7 @@ func NewMessage(msgId uint32, data []byte) ziface.IMessage {
 	return &Message{
 		MsgId:  msgId,
 		MsgLen: uint32(len(data)),
-		Data:   data,
+		data:   data,
 	}
 }
 
@@ -42,9 +42,9 @@ func (m *Message) SetMsgLen(msgLen uint32) {
 }
 
 func (m *Message) GetMsgData() []byte {
-	return m.Data
+	return m.data
 }
 
 func (m *Message) SetMsgData(data []byte) {
-	m.Data = data
+	m.data = data
 }

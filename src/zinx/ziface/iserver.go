@@ -16,4 +16,7 @@ type IServer interface {
 
 	// AddMsgHandler 给当前服务注册一个路由方法，共客户端链接使用
 	AddMsgHandler(uint32, IRouter)
+
+	// GetConnMgr 获取链接容器
+	GetConnMgr() IConnManager
 }

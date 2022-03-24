@@ -11,21 +11,23 @@ import (
 	服务器实体对象
 */
 type Server struct {
-	Name       string
-	TcpVersion string
-	IP         string
-	Port       int
-	MsgHandler ziface.IMsgHandler
+	name       string
+	tcpVersion string
+	ip         string
+	port       int
+	msgHandler ziface.IMsgHandler
+	connMgr    ziface.IConnManager
 }
 
 // NewServer 初始化server模块
 func NewServer() ziface.IServer {
 	return &Server{
-		Name:       utils.GlobalObject.Name,
-		TcpVersion: "tcp4",
-		IP:         utils.GlobalObject.Host,
-		Port:       utils.GlobalObject.TcpPort,
-		MsgHandler: NewMsgHandler(),
+		name:       utils.GlobalObject.Name,
+		tcpVersion: "tcp4",
+		ip:         utils.GlobalObject.Host,
+		port:       utils.GlobalObject.TcpPort,
+		msgHandler: NewMsgHandler(),
+		connMgr:    NewConnManager(),
 	}
 }
 
@@ -34,40 +36,53 @@ func (s *Server) TCPListener(listener net.TCPListener) {
 	var connID uint32 = 0
 
 	for {
-		conn, err := listener.AcceptTCP()
+		TCPConn, err := listener.AcceptTCP()
 		if err != nil {
 			fmt.Println("accept TCP err：", err)
 			continue
 		}
 
+		//判断是否超链接最大支持数
+		if s.connMgr.Quantity() >= utils.GlobalObject.MaxCon {
+
+			TCPConn.Close()
+			fmt.Println("=======the maximum number of links has been exceeded=========")
+			//TODO 给客户端发送超出最大链接数的错误包
+
+			continue
+		}
+
 		//将处理新链接的业务与conn进行绑定
-		connection := NewConnection(conn, connID, s.MsgHandler)
-		connID++
+		conn := NewConnection(s, TCPConn, connID, s.msgHandler)
+
+		//将链接添加进容器
+		s.connMgr.Add(conn)
+		fmt.Println("link quantity = ", s.connMgr.Quantity())
 
 		//启动当前链接的业务处理
-		go connection.Start()
+		go conn.Start()
 	}
 }
 
 // Start 服务器接口启动实现方法
 func (s *Server) Start() {
 	//TODO 启动server服务,解析TCP请求并进行监听
-	fmt.Printf("[start] Server Name %s,Listener at IP：%s,Port：%d\n", s.Name, s.IP, s.Port)
+	fmt.Printf("[START] server name %s,Listener at IP：%s,Port：%d\n", s.name, s.ip, s.port)
 
 	//获取tcp的address
 	go func() {
 
 		//TODO 启动工作池
-		s.MsgHandler.StartWorkPool()
+		s.msgHandler.StartWorkPool()
 
-		addr, err := net.ResolveTCPAddr(s.TcpVersion, fmt.Sprintf("%s:%d", s.IP, s.Port))
+		addr, err := net.ResolveTCPAddr(s.tcpVersion, fmt.Sprintf("%s:%d", s.ip, s.port))
 		if err != nil {
 			fmt.Println("resolve TCP addr err：", err)
 			return
 		}
 
 		//监听服务器地址
-		listener, err := net.ListenTCP(s.TcpVersion, addr)
+		listener, err := net.ListenTCP(s.tcpVersion, addr)
 		if err != nil {
 			fmt.Println("listen TCP err：", err)
 			return
@@ -82,8 +97,9 @@ func (s *Server) Start() {
 // Stop 服务器接口停止实现方法
 func (s *Server) Stop() {
 
+	fmt.Println("[STOP] Zinx server name=", s.name)
 	//TODO 将服务器的资源、状态、开辟的链接信息，进行停止或回收
-
+	s.connMgr.ClearAll()
 }
 
 // Run 服务器接口运行实现方法
@@ -100,5 +116,10 @@ func (s *Server) Run() {
 
 // AddMsgHandler 给当前服务注册一个路由方法到消息管理中，供客户端链接使用
 func (s *Server) AddMsgHandler(msgID uint32, router ziface.IRouter) {
-	s.MsgHandler.AddRouter(msgID, router)
+	s.msgHandler.AddRouter(msgID, router)
+}
+
+// GetConnMgr 获取链接容器
+func (s *Server) GetConnMgr() ziface.IConnManager {
+	return s.connMgr
 }

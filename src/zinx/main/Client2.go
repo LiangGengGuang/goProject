@@ -43,7 +43,7 @@ func main() {
 
 		headLen := make([]byte, dp.GetHeadLength())
 		if _, err := io.ReadFull(coon, headLen); err != nil {
-			fmt.Println("ReadFull error:", err)
+			fmt.Println("client2 ReadFull error:", err)
 			break
 		}
 
@@ -56,9 +56,9 @@ func main() {
 		if msgHead.GetMsgLen() > 0 {
 			//根据msg长度二次读取消息内容
 			msg := msgHead.(*znet.Message)
-			msg.Data = make([]byte, msg.GetMsgLen())
-			if _, err := io.ReadFull(coon, msg.Data); err != nil {
-				fmt.Println("ReadFull error:", err)
+			msg.SetMsgData(make([]byte, msg.GetMsgLen()))
+			if _, err := io.ReadFull(coon, msg.GetMsgData()); err != nil {
+				fmt.Println("client2 ReadFull error:", err)
 				break
 			}
 			fmt.Println("===============server call back===============")

@@ -13,31 +13,33 @@ import (
 	Connection链接
 */
 type Connection struct {
-
+	//当前Conn属于哪个Server
+	tcpServer ziface.IServer
 	//当前链接的socket
-	Conn *net.TCPConn
+	conn *net.TCPConn
 	//当前链接ID
-	ConnID uint32
+	connID uint32
 	//当前链接是否关闭
 	isClose bool
 	//告知当前链接已经停止/退出
-	ExitChan chan bool
+	exitChan chan bool
 	//无缓冲，用于读写之间的消息通信
 	msgChan chan []byte
 	//该链接消息管理
-	MsgHandler ziface.IMsgHandler
+	msgHandler ziface.IMsgHandler
 }
 
 // NewConnection 初始化链路模块方法
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
+func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
 
 	return &Connection{
-		Conn:       conn,
-		ConnID:     connID,
+		tcpServer:  server,
+		conn:       conn,
+		connID:     connID,
 		isClose:    false,
-		MsgHandler: msgHandler,
+		exitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
-		ExitChan:   make(chan bool, 1),
+		msgHandler: msgHandler,
 	}
 }
 
@@ -45,7 +47,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandl
 func (c *Connection) startReader() {
 
 	fmt.Println("[reader goroutine is running]")
-	defer fmt.Println("reader goroutine exit,ConnID:", c.ConnID, "RemoteAddr", c.RemoteAddr().String())
+	defer fmt.Println("reader goroutine exit,ConnID:", c.connID, "RemoteAddr", c.RemoteAddr().String())
 	defer c.Stop()
 
 	for {
@@ -89,10 +91,10 @@ func (c *Connection) startReader() {
 
 		if utils.GlobalObject.WorkerPoolSize > 0 {
 			//已经启动工作池机制，将消息交给Worker处理
-			c.MsgHandler.SendMsgToTaskQueue(&req)
+			c.msgHandler.SendMsgToTaskQueue(&req)
 		} else {
 			//从路由找到注册绑定的conn对应的应用
-			c.MsgHandler.DoMsgHandler(&req)
+			c.msgHandler.DoMsgHandler(&req)
 		}
 	}
 }
@@ -102,13 +104,13 @@ func (c *Connection) startWriter() {
 
 	fmt.Println("[writer goroutine is running]")
 
-	defer fmt.Println("writer goroutine exit,ConnID:", c.ConnID, "RemoteAddr", c.RemoteAddr().String())
+	defer fmt.Println("writer goroutine exit,ConnID:", c.connID, "RemoteAddr", c.RemoteAddr().String())
 
 	for {
 		select {
 		case data, ok := <-c.msgChan:
 			if ok {
-				if _, err := c.Conn.Write(data); err != nil {
+				if _, err := c.conn.Write(data); err != nil {
 					fmt.Println("sendMsg write error:", err)
 					break
 				}
@@ -117,7 +119,7 @@ func (c *Connection) startWriter() {
 				break
 			}
 
-		case <-c.ExitChan:
+		case <-c.exitChan:
 			//代表Reader已经退出，Reader一并退出
 			return
 		}
@@ -146,7 +148,7 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 // Start 启动链接
 func (c *Connection) Start() {
-	fmt.Sprintln("Coon start,ConnID=", c.ConnID)
+	fmt.Sprintln("Coon start,ConnID=", c.connID)
 
 	//TODO 启动从当前链接读业务数据
 	go c.startReader()
@@ -157,7 +159,11 @@ func (c *Connection) Start() {
 
 func (c *Connection) Stop() {
 
-	fmt.Println("Coon stop,ConnID:", c.ConnID)
+	fmt.Println("Coon stop,ConnID:", c.connID)
+
+	//回收资源
+	defer close(c.exitChan)
+	defer close(c.msgChan)
 
 	if c.isClose {
 		return
@@ -165,24 +171,23 @@ func (c *Connection) Stop() {
 	c.isClose = true
 
 	//关闭socket链接
-	c.Conn.Close()
+	c.conn.Close()
 
 	//告知Writer关闭
-	c.ExitChan <- true
+	c.exitChan <- true
 
-	//回收资源
-	close(c.ExitChan)
-	close(c.msgChan)
+	//将链接从容器中移除
+	c.tcpServer.GetConnMgr().Remove(c.connID)
 }
 
 func (c *Connection) GetTCPConn() *net.TCPConn {
-	return c.Conn
+	return c.conn
 }
 
 func (c *Connection) GetConnID() uint32 {
-	return c.ConnID
+	return c.connID
 }
 
 func (c *Connection) RemoteAddr() net.Addr {
-	return c.Conn.RemoteAddr()
+	return c.conn.RemoteAddr()
 }
