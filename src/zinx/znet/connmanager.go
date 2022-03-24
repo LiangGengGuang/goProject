@@ -6,6 +6,9 @@ import (
 	"zinx/ziface"
 )
 
+/*
+	ConnManager 链接管理具体实现
+*/
 type ConnManager struct {
 
 	//链接字典

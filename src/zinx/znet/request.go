@@ -3,7 +3,7 @@ package znet
 import "zinx/ziface"
 
 /*
-	链接请求实体对象
+	Request 链接请求实体对象
 */
 type Request struct {
 	//链接

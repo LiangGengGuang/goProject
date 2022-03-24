@@ -8,7 +8,7 @@ import (
 )
 
 /*
-	服务器实体对象
+	Server 服务器实体对象
 */
 type Server struct {
 	name       string

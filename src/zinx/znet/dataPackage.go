@@ -9,7 +9,7 @@ import (
 )
 
 /*
-	解决TCP数据粘包的处理对象
+	DataPackage 解决TCP数据粘包的处理对象
 */
 type DataPackage struct{}
 

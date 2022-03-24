@@ -3,7 +3,7 @@ package znet
 import "zinx/ziface"
 
 /*
-	数据传送的消息载体对象
+	Message 数据传送的消息载体对象
 */
 type Message struct {
 
