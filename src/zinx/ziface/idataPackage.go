@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	tcp的TLV格式，解决TCP数据粘包
+	IDataPackage tcp的TLV格式，解决TCP数据粘包
 */
 type IDataPackage interface {
 

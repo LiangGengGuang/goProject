@@ -10,7 +10,7 @@ import (
 )
 
 /*
-	Connection链接
+	Connection 链接
 */
 type Connection struct {
 	//当前Conn属于哪个Server
@@ -171,7 +171,7 @@ func (c *Connection) Stop() {
 	c.isClose = true
 
 	//关闭socket链接
-	c.conn.Close()
+	_ = c.conn.Close()
 
 	//告知Writer关闭
 	c.exitChan <- true

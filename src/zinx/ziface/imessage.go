@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	消息载体
+	IMessage 消息载体
 */
 type IMessage interface {
 

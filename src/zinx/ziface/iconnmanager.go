@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	链接管理抽象方法
+	IConnManager 链接管理抽象方法
 */
 type IConnManager interface {
 

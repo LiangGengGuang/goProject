@@ -45,8 +45,8 @@ func (s *Server) TCPListener(listener net.TCPListener) {
 		//判断是否超链接最大支持数
 		if s.connMgr.Quantity() >= utils.GlobalObject.MaxCon {
 
-			TCPConn.Close()
-			fmt.Println("=======the maximum number of links has been exceeded=========")
+			_ = TCPConn.Close()
+			fmt.Println("=======>the maximum number of links has been exceeded,max conn=", utils.GlobalObject.MaxCon)
 			//TODO 给客户端发送超出最大链接数的错误包
 
 			continue

@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	路由里的数据都是IRequest
+	IRouter 路由里的数据都是IRequest
 */
 type IRouter interface {
 

@@ -8,7 +8,7 @@ import (
 )
 
 /*
-	消息管理具体实现
+	MsgHandler 消息管理具体实现
 */
 type MsgHandler struct {
 	//存放每个msgId处理的方法

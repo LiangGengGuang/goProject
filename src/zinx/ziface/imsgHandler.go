@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	消息管理抽象层
+	IMsgHandler 消息管理抽象层
 */
 type IMsgHandler interface {
 

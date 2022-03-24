@@ -3,7 +3,7 @@ package ziface
 import "net"
 
 /*
-	链接载体
+	IConnection 链接载体
 */
 type IConnection interface {
 

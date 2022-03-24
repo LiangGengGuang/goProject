@@ -1,7 +1,7 @@
 package ziface
 
 /*
-	链接请求载体
+	IRequest 链接请求载体
 */
 type IRequest interface {
 
