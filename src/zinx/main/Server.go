@@ -61,11 +61,37 @@ func DoOnConnStart(conn ziface.IConnection) {
 		fmt.Println(err)
 	}
 
+	//给当前链接设置属性
+	conn.SetProperty("name", "lgg")
+	conn.SetProperty("age", 28)
 }
 func DoOnConnStop(conn ziface.IConnection) {
 
 	fmt.Println("============>DoOnConnStop")
 	fmt.Println("connID", conn.GetConnID())
+
+	if property, err := conn.GetProperty("name"); err == nil {
+		fmt.Println("name=", property)
+	} else {
+		fmt.Println(err)
+	}
+
+	if property, err := conn.GetProperty("age"); err == nil {
+		fmt.Println("age=", property)
+	} else {
+		fmt.Println(err)
+	}
+
+	if property, err := conn.GetProperty("sex"); err == nil {
+		fmt.Println("sex=", property)
+	} else {
+		fmt.Println(err)
+	}
+
+	conn.RemoveProperty("name")
+	conn.RemoveProperty("age")
+	conn.RemoveProperty("sex")
+
 }
 
 func main() {

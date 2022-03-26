@@ -53,7 +53,7 @@ func (cm *ConnManager) Get(connId uint32) (ziface.IConnection, error) {
 		fmt.Println("remove connection,connId=", connId)
 		return conn, nil
 	}
-	return nil, errors.New("get connection error")
+	return nil, errors.New("no found connection=[" + string(connId) + "]")
 }
 
 func (cm *ConnManager) Quantity() int {

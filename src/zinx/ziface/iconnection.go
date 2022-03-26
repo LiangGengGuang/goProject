@@ -24,7 +24,13 @@ type IConnection interface {
 
 	// SendMsg 发送消息
 	SendMsg(uint32, []byte) error
-}
 
-// HandleFunc 链接所绑定的处理业务的函数类型
-type HandleFunc func(*net.TCPConn, []byte, int) error
+	// SetProperty 设置链接属性
+	SetProperty(string, interface{})
+
+	// GetProperty 获取链接属性
+	GetProperty(string) (interface{}, error)
+
+	// RemoveProperty 移除链接属性
+	RemoveProperty(string)
+}

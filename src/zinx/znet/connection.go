@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"zinx/utils"
 	"zinx/ziface"
 )
@@ -13,20 +14,33 @@ import (
 	Connection 链接
 */
 type Connection struct {
+
 	//当前Conn属于哪个Server
 	tcpServer ziface.IServer
+
 	//当前链接的socket
 	conn *net.TCPConn
+
 	//当前链接ID
 	connID uint32
+
 	//当前链接是否关闭
 	isClose bool
+
 	//告知当前链接已经停止/退出
 	exitChan chan bool
+
 	//无缓冲，用于读写之间的消息通信
 	msgChan chan []byte
+
 	//该链接消息管理
 	msgHandler ziface.IMsgHandler
+
+	//链接属性
+	property map[string]interface{}
+
+	//链接属性锁
+	propertyLock sync.RWMutex
 }
 
 // NewConnection 初始化链路模块方法
@@ -40,6 +54,7 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		exitChan:   make(chan bool, 1),
 		msgChan:    make(chan []byte),
 		msgHandler: msgHandler,
+		property:   map[string]interface{}{},
 	}
 
 	//将链接添加进容器
@@ -131,6 +146,7 @@ func (c *Connection) startWriter() {
 }
 
 func (c *Connection) SendMsg(msgId uint32, data []byte) error {
+
 	if c.isClose {
 		return errors.New("Connection is closed ")
 	}
@@ -152,6 +168,7 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 // Start 启动链接
 func (c *Connection) Start() {
+
 	fmt.Sprintln("Coon start,ConnID=", c.connID)
 
 	//启动从当前链接读业务数据
@@ -191,13 +208,47 @@ func (c *Connection) Stop() {
 }
 
 func (c *Connection) GetTCPConn() *net.TCPConn {
+
 	return c.conn
 }
 
 func (c *Connection) GetConnID() uint32 {
+
 	return c.connID
 }
 
 func (c *Connection) RemoteAddr() net.Addr {
+
 	return c.conn.RemoteAddr()
+}
+
+func (c *Connection) SetProperty(str string, inter interface{}) {
+
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	//添加属性
+	c.property[str] = inter
+}
+
+func (c *Connection) GetProperty(str string) (interface{}, error) {
+
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	//获取属性
+	if inter, ok := c.property[str]; ok {
+		return inter, nil
+	}
+	return nil, errors.New("no found property=[" + str + "]")
+}
+
+func (c *Connection) RemoveProperty(str string) {
+
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	//删除属性
+	delete(c.property, str)
+	fmt.Println("remove property=", str)
 }
