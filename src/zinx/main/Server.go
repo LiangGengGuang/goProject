@@ -54,6 +54,20 @@ func (c *CustomRouter) Handle(req ziface.IRequest) {
 	}
 }
 
+func DoOnConnStart(conn ziface.IConnection) {
+
+	fmt.Println("============>DoOnConnStart")
+	if err := conn.SendMsg(202, []byte("DoOnConnStart successfully...")); err != nil {
+		fmt.Println(err)
+	}
+
+}
+func DoOnConnStop(conn ziface.IConnection) {
+
+	fmt.Println("============>DoOnConnStop")
+	fmt.Println("connID", conn.GetConnID())
+}
+
 func main() {
 
 	server := znet.NewServer()
@@ -62,6 +76,12 @@ func main() {
 	server.AddMsgHandler(0, &PingRouter{})
 	//添加router
 	server.AddMsgHandler(1, &CustomRouter{})
+
+	//链接建立
+	server.SetOnConnStart(DoOnConnStart)
+
+	//链接销毁
+	server.SetOnConnStop(DoOnConnStop)
 
 	//运行服务器
 	server.Run()

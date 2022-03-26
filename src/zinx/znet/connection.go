@@ -32,7 +32,7 @@ type Connection struct {
 // NewConnection 初始化链路模块方法
 func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgHandler ziface.IMsgHandler) ziface.IConnection {
 
-	return &Connection{
+	c := &Connection{
 		tcpServer:  server,
 		conn:       conn,
 		connID:     connID,
@@ -41,6 +41,10 @@ func NewConnection(server ziface.IServer, conn *net.TCPConn, connID uint32, msgH
 		msgChan:    make(chan []byte),
 		msgHandler: msgHandler,
 	}
+
+	//将链接添加进容器
+	c.tcpServer.GetConnMgr().Add(c)
+	return c
 }
 
 //读取链接请求数据
@@ -150,16 +154,22 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 func (c *Connection) Start() {
 	fmt.Sprintln("Coon start,ConnID=", c.connID)
 
-	//TODO 启动从当前链接读业务数据
+	//启动从当前链接读业务数据
 	go c.startReader()
 
-	//TODO 启动从当前链接写业务数据
+	//启动从当前链接写业务数据
 	go c.startWriter()
+
+	//按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
+	c.tcpServer.CallOnConnStart(c)
 }
 
 func (c *Connection) Stop() {
 
 	fmt.Println("Coon stop,ConnID:", c.connID)
+
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.tcpServer.CallOnConnStop(c)
 
 	//回收资源
 	defer close(c.exitChan)
