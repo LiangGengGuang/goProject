@@ -12,7 +12,7 @@ type IConnManager interface {
 	Remove(uint32)
 
 	// Get 根据ConnId获取链接
-	Get(uint32) IConnection
+	Get(uint32) (IConnection, error)
 
 	// Quantity 链接数量
 	Quantity() int

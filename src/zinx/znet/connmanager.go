@@ -1,6 +1,7 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"zinx/ziface"
@@ -43,13 +44,15 @@ func (cm *ConnManager) Remove(connId uint32) {
 	fmt.Println("remove connection,connId=", connId)
 }
 
-func (cm *ConnManager) Get(connId uint32) ziface.IConnection {
+func (cm *ConnManager) Get(connId uint32) (ziface.IConnection, error) {
 
 	cm.ConnMapLock.RLock()
 	defer cm.ConnMapLock.RUnlock()
-	conn := cm.ConnMap[connId]
-	fmt.Println("remove connection,connId=", connId)
-	return conn
+	if conn := cm.ConnMap[connId]; conn != nil {
+		fmt.Println("remove connection,connId=", connId)
+		return conn, nil
+	}
+	return nil, errors.New("get connection error")
 }
 
 func (cm *ConnManager) Quantity() int {
@@ -83,13 +86,12 @@ func (cm *ConnManager) ClearOne(ConnId uint32) {
 	cm.ConnMapLock.Lock()
 	defer cm.ConnMapLock.Unlock()
 
-	if conn := cm.Get(ConnId); conn != nil {
-
+	if conn, err := cm.Get(ConnId); err == nil {
 		//停止
 		conn.Stop()
 
 		//删除
 		delete(cm.ConnMap, ConnId)
+		fmt.Println("Clear one connection")
 	}
-	fmt.Println("Clear one connection")
 }
