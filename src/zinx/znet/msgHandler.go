@@ -11,10 +11,13 @@ import (
 	MsgHandler 消息管理具体实现
 */
 type MsgHandler struct {
+
 	//存放每个msgId处理的方法
 	apis map[uint32]ziface.IRouter
+
 	//消息队列
 	taskQueue []chan ziface.IRequest
+
 	//工作池的大小
 	workPoolSize uint32
 }

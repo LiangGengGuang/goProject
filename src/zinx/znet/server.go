@@ -11,18 +11,35 @@ import (
 	Server 服务器实体对象
 */
 type Server struct {
-	name        string
-	tcpVersion  string
-	ip          string
-	port        int
-	msgHandler  ziface.IMsgHandler
-	connMgr     ziface.IConnManager
+
+	//服务名称
+	name string
+
+	//tcp版本
+	tcpVersion string
+
+	//服务地址
+	ip string
+
+	//服务端口
+	port int
+
+	//消息链接器
+	msgHandler ziface.IMsgHandler
+
+	//链接管理器
+	connMgr ziface.IConnManager
+
+	//链接建立后处理方法
 	onConnStart func(connection ziface.IConnection)
-	onConnStop  func(connection ziface.IConnection)
+
+	//链接销毁前处理方法
+	onConnStop func(connection ziface.IConnection)
 }
 
 // NewServer 初始化server模块
 func NewServer() ziface.IServer {
+
 	return &Server{
 		name:       utils.GlobalObject.Name,
 		tcpVersion: "tcp4",
@@ -35,6 +52,7 @@ func NewServer() ziface.IServer {
 
 // TCPListener 处理tcp监听器内容
 func (s *Server) TCPListener(listener net.TCPListener) {
+
 	var connID uint32 = 0
 
 	for {
@@ -65,6 +83,7 @@ func (s *Server) TCPListener(listener net.TCPListener) {
 
 // Start 服务器接口启动实现方法
 func (s *Server) Start() {
+
 	//启动server服务,解析TCP请求并进行监听
 	fmt.Printf("[START] server name %s,Listener at IP：%s,Port：%d\n", s.name, s.ip, s.port)
 
@@ -97,6 +116,7 @@ func (s *Server) Start() {
 func (s *Server) Stop() {
 
 	fmt.Println("[STOP] Zinx server name=", s.name)
+
 	//将服务器的资源、状态、开辟的链接信息，进行停止或回收
 	s.connMgr.ClearAll()
 }
@@ -115,15 +135,18 @@ func (s *Server) Run() {
 
 // AddMsgHandler 给当前服务注册一个路由方法到消息管理中，供客户端链接使用
 func (s *Server) AddMsgHandler(msgID uint32, router ziface.IRouter) {
+
 	s.msgHandler.AddRouter(msgID, router)
 }
 
 // GetConnMgr 获取链接容器
 func (s *Server) GetConnMgr() ziface.IConnManager {
+
 	return s.connMgr
 }
 
 func (s *Server) SetOnConnStart(hookFunc func(ziface.IConnection)) {
+
 	s.onConnStart = hookFunc
 }
 
@@ -137,6 +160,7 @@ func (s *Server) CallOnConnStart(conn ziface.IConnection) {
 }
 
 func (s *Server) SetOnConnStop(hookFunc func(ziface.IConnection)) {
+
 	s.onConnStop = hookFunc
 }
 

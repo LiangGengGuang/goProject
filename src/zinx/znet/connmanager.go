@@ -21,6 +21,7 @@ type ConnManager struct {
 
 // NewConnManager 初始化链接容器方法
 func NewConnManager() ziface.IConnManager {
+
 	return &ConnManager{
 		ConnMap: make(map[uint32]ziface.IConnection),
 	}
@@ -87,6 +88,7 @@ func (cm *ConnManager) ClearOne(ConnId uint32) {
 	defer cm.ConnMapLock.Unlock()
 
 	if conn, err := cm.Get(ConnId); err == nil {
+
 		//停止
 		conn.Stop()
 
