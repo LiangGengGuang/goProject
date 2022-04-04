@@ -19,6 +19,7 @@ func init() {
 }
 
 func main() {
+
 	//命令行解析
 	flag.Parse()
 
@@ -54,6 +55,7 @@ func main() {
 		}
 
 		if msgHead.GetMsgLen() > 0 {
+
 			//根据msg长度二次读取消息内容
 			msg := msgHead.(*znet.Message)
 			msg.SetMsgData(make([]byte, msg.GetMsgLen()))

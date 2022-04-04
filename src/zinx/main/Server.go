@@ -7,9 +7,8 @@ import (
 )
 
 /*
-	基于zinx框架开发的 服务器应用程序
+	PingRouter 基于zinx框架开发的 服务器应用程序
 */
-
 type PingRouter struct {
 	znet.BaseRouter
 }
@@ -54,6 +53,7 @@ func (c *CustomRouter) Handle(req ziface.IRequest) {
 	}
 }
 
+// DoOnConnStart 链接建立后方法
 func DoOnConnStart(conn ziface.IConnection) {
 
 	fmt.Println("============>DoOnConnStart")
@@ -65,6 +65,8 @@ func DoOnConnStart(conn ziface.IConnection) {
 	conn.SetProperty("name", "lgg")
 	conn.SetProperty("age", 28)
 }
+
+// DoOnConnStop 链接销毁前方法
 func DoOnConnStop(conn ziface.IConnection) {
 
 	fmt.Println("============>DoOnConnStop")
