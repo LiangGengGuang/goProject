@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"project/3-router/controller/contextFunc"
 )
 
 // @Description
@@ -15,39 +15,23 @@ type User struct {
 }
 
 func PostApiInit(c *gin.Engine) {
+	cf := contextFunc.ContextFunc{}
 
 	//路由分组
 	postG := c.Group("/post")
 	{
 		//form-data 表单提交
 		postG.POST("", func(c *gin.Context) {
-
-			userName := c.PostForm("userName")
-			sex := c.DefaultPostForm("sex", "女")
-			c.JSON(http.StatusOK, gin.H{
-				"userName": userName,
-				"sex":      sex,
-			})
+			cf.PostFormContext(c, "userName", "age")
 		})
 
 		//json格式提交
 		postG.POST("/json1", func(c *gin.Context) {
-
-			json := make(map[string]interface{})
-			c.BindJSON(&json)
-			userName := json["userName"]
-			sex := json["sex"]
-			c.JSON(http.StatusOK, gin.H{
-				"userName": userName,
-				"sex":      sex,
-			})
+			cf.PostJsonContext(c, nil)
 		})
 
 		postG.POST("/json2", func(c *gin.Context) {
-
-			user := User{}
-			c.BindJSON(&user)
-			c.JSON(http.StatusOK, user)
+			cf.PostJsonContext(c, User{})
 		})
 	}
 }
