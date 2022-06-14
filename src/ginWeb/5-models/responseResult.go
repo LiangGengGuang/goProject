@@ -7,14 +7,14 @@ type Result struct {
 
 var Results *Result
 
-func SuccessResult(data string) *Result {
+func SuccessResult(data interface{}) *Result {
 	return &Result{
 		Msg:  "success",
 		Data: data,
 	}
 }
 
-func ErrorResult(data string) *Result {
+func ErrorResult(data interface{}) *Result {
 	return &Result{
 		Msg:  "failure",
 		Data: data,
