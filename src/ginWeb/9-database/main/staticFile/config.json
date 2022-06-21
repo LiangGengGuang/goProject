@@ -1,0 +1,10 @@
+{
+  "DbCfg": {
+    "Uri": "tcp(127.0.0.1:3306)/demo",
+    "UserName": "root",
+    "Password": "root",
+    "MaxConn": 100,
+    "MaxOpenConn": 10,
+    "MaxIdleConn": 5
+  }
+}
