@@ -1,8 +1,11 @@
 package module
 
 import (
+	"context"
 	"fmt"
+	redis2 "github.com/go-redis/redis/v8"
 	"project/9-database/mysql"
+	"project/9-database/redis"
 	"time"
 )
 
@@ -82,4 +85,25 @@ func (g *IGoods) DeleteById(id int) bool {
 		return false
 	}
 	return true
+}
+
+//redis
+var ctx = context.Background()
+
+func (g *IGoods) Set(key, val string) {
+	err := redis.RDB.Set(ctx, key, val, 60000).Err()
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (g *IGoods) Get(key string) string {
+	result, err := redis.RDB.Get(ctx, key).Result()
+	if err == redis2.Nil {
+		fmt.Println("key2 does not exist")
+	} else if err != nil {
+		fmt.Println("redis Get error：", err)
+		panic(err)
+	}
+	return result
 }

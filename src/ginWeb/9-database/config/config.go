@@ -11,6 +11,7 @@ import (
 // @Date 2022/6/17
 
 type GlobalConfig struct {
+	Port     int
 	DbCfg    *MysqlConfig
 	RedisCfg *RedisConfig
 }
@@ -28,6 +29,7 @@ type RedisConfig struct {
 	Port     int
 	UserName string
 	Password string
+	DB       int
 }
 
 var GlobalCfg *GlobalConfig
@@ -63,6 +65,7 @@ func init() {
 		Password: "",
 	}
 	GlobalCfg = &GlobalConfig{
+		Port:     80,
 		DbCfg:    dbCfg,
 		RedisCfg: redisCfg,
 	}
