@@ -24,6 +24,7 @@ type MysqlConfig struct {
 	MaxOpenConn int
 	MaxIdleConn int
 }
+
 type RedisConfig struct {
 	Uri      string
 	Port     int
@@ -63,7 +64,9 @@ func init() {
 		Port:     6379,
 		UserName: "",
 		Password: "",
+		DB:       1,
 	}
+
 	GlobalCfg = &GlobalConfig{
 		Port:     80,
 		DbCfg:    dbCfg,

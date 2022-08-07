@@ -1,11 +1,10 @@
 package module
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
-	redis2 "github.com/go-redis/redis/v8"
-	"project/9-database/mysql"
-	"project/9-database/redis"
+	"project/9-database/db"
+	"strconv"
 	"time"
 )
 
@@ -14,13 +13,13 @@ import (
 // @Date 2022/6/19
 
 type IGoods struct {
-	Id         int
-	Name       string
-	Number     int
-	Price      float64
-	Unit       string
-	CreateTime *time.Time `gorm:"->"` //只允许读取
-	UpdateTime *time.Time `gorm:"->"` //只允许读取
+	Id         int        `json:"id"`
+	Name       string     `json:"name"`
+	Number     int        `json:"number"`
+	Price      float64    `json:"price"`
+	Unit       string     `json:"unit"`
+	CreateTime *time.Time `gorm:"->" json:"create_time"` //只允许读取
+	UpdateTime *time.Time `gorm:"->" json:"update_time"` //只允许读取
 }
 
 var Goods *IGoods
@@ -32,7 +31,7 @@ func (g *IGoods) TableName() string {
 func (g *IGoods) QueryAll() []*IGoods {
 
 	var goods []*IGoods
-	result := mysql.DB.Find(&goods)
+	result := db.MDB.Find(&goods)
 	if result.Error != nil {
 		fmt.Println("QueryAll fail:", result.Error)
 		return nil
@@ -44,11 +43,19 @@ func (g *IGoods) QueryById(id int) *IGoods {
 
 	var goods *IGoods
 
-	//result := mysql.DB.Where("id=?", id).Find(&Goods)
-	result := mysql.DB.Find(&goods, "id=?", id)
-	if result.Error != nil {
-		fmt.Println("QueryById fail:", result.Error)
-		return nil
+	val := g.Get(strconv.Itoa(id))
+	if val != "" {
+		json.Unmarshal([]byte(val), &goods)
+	} else {
+		//result := db.MDB.Where("id=?", id).Find(&Goods)
+		result := db.MDB.Find(&goods, "id=?", id)
+		if result.Error != nil {
+			fmt.Println("QueryById fail:", result.Error)
+			return nil
+		}
+		if marshal, err := json.Marshal(goods); err == nil {
+			g.Set(strconv.Itoa(id), marshal)
+		}
 	}
 	return goods
 }
@@ -59,27 +66,37 @@ func (g *IGoods) Insert(goods *IGoods) bool {
 		return false
 	}
 
-	result := mysql.DB.Create(&goods)
+	result := db.MDB.Create(&goods)
 	if result.Error != nil {
 		fmt.Println("Insert fail:", result.Error)
 		return false
+	}
+	goods = g.QueryById(goods.Id)
+	if marshal, err := json.Marshal(goods); err == nil {
+		g.Set(strconv.Itoa(goods.Id), marshal)
 	}
 	return true
 }
 
 func (g *IGoods) UpdateById(goods *IGoods) bool {
 
-	result := mysql.DB.Model(&goods).Updates(goods)
+	result := db.MDB.Model(&goods).Updates(goods)
 	if result.Error != nil {
 		fmt.Println("UpdateById fail:", result.Error)
 		return false
+	}
+	goods = g.QueryById(goods.Id)
+	if marshal, err := json.Marshal(goods); err == nil {
+		g.Set(strconv.Itoa(goods.Id), marshal)
 	}
 	return true
 }
 
 func (g *IGoods) DeleteById(id int) bool {
 
-	result := mysql.DB.Where("id =?", id).Delete(&IGoods{})
+	g.Del(strconv.Itoa(id))
+
+	result := db.MDB.Where("id =?", id).Delete(&IGoods{})
 	if result.Error != nil {
 		fmt.Println("DeleteById fail:", result.Error)
 		return false
@@ -87,23 +104,29 @@ func (g *IGoods) DeleteById(id int) bool {
 	return true
 }
 
-//redis
-var ctx = context.Background()
-
-func (g *IGoods) Set(key, val string) {
-	err := redis.RDB.Set(ctx, key, val, 60000).Err()
+func (g *IGoods) Set(key string, val interface{}) {
+	result, err := db.RDB.Set(db.RDB.Context(), key, val, 0).Result()
 	if err != nil {
-		panic(err)
+		fmt.Println("redis Set error：", err)
+	} else {
+		fmt.Println("redis Set success：", result)
 	}
 }
 
 func (g *IGoods) Get(key string) string {
-	result, err := redis.RDB.Get(ctx, key).Result()
-	if err == redis2.Nil {
-		fmt.Println("key2 does not exist")
-	} else if err != nil {
+	val, err := db.RDB.Get(db.RDB.Context(), key).Result()
+	if err != nil {
 		fmt.Println("redis Get error：", err)
-		panic(err)
+		return ""
 	}
-	return result
+	return val
+}
+
+func (g *IGoods) Del(key string) {
+	result, err := db.RDB.Del(db.RDB.Context(), key).Result()
+	if err != nil {
+		fmt.Println("redis Del error：", err)
+	} else {
+		fmt.Println("redis Del success：", result)
+	}
 }

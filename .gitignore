@@ -3,3 +3,4 @@
 src/zinx/test
 *.out
 trace2
+src/test
