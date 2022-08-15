@@ -1,3 +1,3 @@
 module zinx
 
-go 1.14
+go 1.19
