@@ -9,12 +9,8 @@ func main() {
 
 	c := gin.Default()
 
-	//GET请求
-	controller.GetApiInit(c)
-
-	//POST请求
-	controller.PostApiInit(c)
+	//初始化接口
+	controller.ApiInit(c)
 
 	c.Run(":8088")
-
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	models "project/5-models"
+	"project/5-models"
 	"project/9-database/module"
 	"strconv"
 )
