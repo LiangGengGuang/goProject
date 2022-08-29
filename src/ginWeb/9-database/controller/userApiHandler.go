@@ -13,7 +13,7 @@ import (
 // @Author lianggengguang
 // @Date 2022/6/21
 
-var goods = module.NewGoods()
+var goods = module.Goods{}
 
 func QueryAll(c *gin.Context) {
 	c.JSON(http.StatusOK, models.SuccessResult(goods.QueryAll()))
@@ -21,8 +21,7 @@ func QueryAll(c *gin.Context) {
 
 func QueryById(c *gin.Context) {
 
-	query := c.Query("id")
-	id, err := strconv.Atoi(query)
+	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
 		fmt.Printf("参数不存在：%d\n", id)
 		c.JSON(http.StatusInternalServerError, models.ErrorResult("id参数不存在"))

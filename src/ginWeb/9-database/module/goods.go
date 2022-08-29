@@ -26,11 +26,6 @@ func (g *Goods) TableName() string {
 	return "goods"
 }
 
-// NewGoods 初始化模块方法
-func NewGoods() Goods {
-	return Goods{}
-}
-
 func (g *Goods) QueryAll() []*Goods {
 
 	var goods []*Goods
