@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"project/9-database/config"
 )
 
 // @Description
@@ -17,7 +16,7 @@ var MDB *gorm.DB
 //创建mysql连接
 func init() {
 
-	dsn := fmt.Sprintf("%s:%s@%s?charset=utf8mb4&parseTime=True&loc=Local", config.GlobalCfg.DbCfg.UserName, config.GlobalCfg.DbCfg.Password, config.GlobalCfg.DbCfg.Uri)
+	dsn := fmt.Sprintf("%s:%s@%s?charset=utf8mb4&parseTime=True&loc=Local", GlobalCfg.DbCfg.UserName, GlobalCfg.DbCfg.Password, GlobalCfg.DbCfg.Uri)
 	mdb, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Println("数据库连接失败：", err)
@@ -29,13 +28,13 @@ func init() {
 		panic(err)
 	}
 	//设置了连接可复用的最大时间。
-	sqlDB.SetConnMaxLifetime(config.GlobalCfg.DbCfg.MaxConnTime)
+	sqlDB.SetConnMaxLifetime(GlobalCfg.DbCfg.MaxConnTime)
 
 	//置打开数据库连接的最大数量。
-	sqlDB.SetMaxOpenConns(config.GlobalCfg.DbCfg.MaxOpenConn)
+	sqlDB.SetMaxOpenConns(GlobalCfg.DbCfg.MaxOpenConn)
 
 	//设置空闲连接池中连接的最大数量
-	sqlDB.SetMaxIdleConns(config.GlobalCfg.DbCfg.MaxIdleConn)
+	sqlDB.SetMaxIdleConns(GlobalCfg.DbCfg.MaxIdleConn)
 
 	MDB = mdb
 	fmt.Println("数据库连接成功")

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"project/9-database/config"
 )
 
 // @Description
@@ -17,12 +16,12 @@ var RDB *redis.Client
 func init() {
 
 	//单连接
-	addr := fmt.Sprintf("%s:%d", config.GlobalCfg.RedisCfg.Uri, config.GlobalCfg.RedisCfg.Port)
+	addr := fmt.Sprintf("%s:%d", GlobalCfg.RedisCfg.Uri, GlobalCfg.RedisCfg.Port)
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Username: config.GlobalCfg.RedisCfg.UserName,
-		Password: config.GlobalCfg.RedisCfg.Password,
-		DB:       config.GlobalCfg.RedisCfg.DB,
+		Username: GlobalCfg.RedisCfg.UserName,
+		Password: GlobalCfg.RedisCfg.Password,
+		DB:       GlobalCfg.RedisCfg.DB,
 	})
 
 	_, err := RDB.Ping(context.Background()).Result()

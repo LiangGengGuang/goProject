@@ -12,7 +12,7 @@ import (
 // @Author lianggengguang
 // @Date 2022/6/19
 
-type IGoods struct {
+type Goods struct {
 	Id         int        `json:"id"`
 	Name       string     `json:"name"`
 	Number     int        `json:"number"`
@@ -22,15 +22,18 @@ type IGoods struct {
 	UpdateTime *time.Time `gorm:"->" json:"update_time"` //只允许读取
 }
 
-var Goods *IGoods
-
-func (g *IGoods) TableName() string {
+func (g *Goods) TableName() string {
 	return "goods"
 }
 
-func (g *IGoods) QueryAll() []*IGoods {
+// NewGoods 初始化模块方法
+func NewGoods() Goods {
+	return Goods{}
+}
 
-	var goods []*IGoods
+func (g *Goods) QueryAll() []*Goods {
+
+	var goods []*Goods
 	result := db.MDB.Find(&goods)
 	if result.Error != nil {
 		fmt.Println("QueryAll fail:", result.Error)
@@ -39,9 +42,9 @@ func (g *IGoods) QueryAll() []*IGoods {
 	return goods
 }
 
-func (g *IGoods) QueryById(id int) *IGoods {
+func (g *Goods) QueryById(id int) *Goods {
 
-	var goods *IGoods
+	var goods *Goods
 
 	val := g.Get(strconv.Itoa(id))
 	if val != "" {
@@ -60,7 +63,7 @@ func (g *IGoods) QueryById(id int) *IGoods {
 	return goods
 }
 
-func (g *IGoods) Insert(goods *IGoods) bool {
+func (g *Goods) Insert(goods *Goods) bool {
 
 	if goods == nil {
 		return false
@@ -78,7 +81,7 @@ func (g *IGoods) Insert(goods *IGoods) bool {
 	return true
 }
 
-func (g *IGoods) UpdateById(goods *IGoods) bool {
+func (g *Goods) UpdateById(goods *Goods) bool {
 
 	result := db.MDB.Model(&goods).Updates(goods)
 	if result.Error != nil {
@@ -92,11 +95,11 @@ func (g *IGoods) UpdateById(goods *IGoods) bool {
 	return true
 }
 
-func (g *IGoods) DeleteById(id int) bool {
+func (g *Goods) DeleteById(id int) bool {
 
 	g.Del(strconv.Itoa(id))
 
-	result := db.MDB.Where("id =?", id).Delete(&IGoods{})
+	result := db.MDB.Where("id =?", id).Delete(&Goods{})
 	if result.Error != nil {
 		fmt.Println("DeleteById fail:", result.Error)
 		return false
@@ -104,7 +107,7 @@ func (g *IGoods) DeleteById(id int) bool {
 	return true
 }
 
-func (g *IGoods) Set(key string, val interface{}) {
+func (g *Goods) Set(key string, val interface{}) {
 	result, err := db.RDB.Set(db.RDB.Context(), key, val, 0).Result()
 	if err != nil {
 		fmt.Println("redis Set error：", err)
@@ -113,7 +116,7 @@ func (g *IGoods) Set(key string, val interface{}) {
 	}
 }
 
-func (g *IGoods) Get(key string) string {
+func (g *Goods) Get(key string) string {
 	val, err := db.RDB.Get(db.RDB.Context(), key).Result()
 	if err != nil {
 		fmt.Println("redis Get error：", err)
@@ -122,7 +125,7 @@ func (g *IGoods) Get(key string) string {
 	return val
 }
 
-func (g *IGoods) Del(key string) {
+func (g *Goods) Del(key string) {
 	result, err := db.RDB.Del(db.RDB.Context(), key).Result()
 	if err != nil {
 		fmt.Println("redis Del error：", err)

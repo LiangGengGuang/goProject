@@ -1,4 +1,4 @@
-package config
+package db
 
 import (
 	"encoding/json"
@@ -38,7 +38,7 @@ var GlobalCfg *GlobalConfig
 func (cfg *GlobalConfig) Reload() {
 
 	//文件的路径：go.mod的相对路径
-	file, err := ioutil.ReadFile("9-database/main/staticFile/config.json")
+	file, err := ioutil.ReadFile("9-database/config.json")
 	if err != nil {
 		panic(err)
 	}

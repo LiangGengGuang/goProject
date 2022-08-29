@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"project/9-database/config"
 	"project/9-database/controller"
+	"project/9-database/db"
 )
 
 // @Description
@@ -13,14 +13,10 @@ import (
 
 func main() {
 
-	e := gin.Default()
+	c := gin.Default()
 
-	//mysql
-	controller.MysqlController(e)
+	controller.ApiInit(c)
 
-	//redis
-	//controller.RedisController(e)
-
-	portStr := fmt.Sprintf(":%d", config.GlobalCfg.Port)
-	e.Run(portStr)
+	portStr := fmt.Sprintf(":%d", db.GlobalCfg.Port)
+	c.Run(portStr)
 }
