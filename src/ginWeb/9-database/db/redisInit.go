@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
+	"project/9-database/logger"
 )
 
 // @Description
@@ -26,9 +27,9 @@ func init() {
 
 	_, err := RDB.Ping(context.Background()).Result()
 	if err != nil {
-		fmt.Printf("redis连接失败：%v", err)
+		logger.Log.Errorf("redis connection failed：%v", err)
 		panic(err)
 	}
 
-	fmt.Println("redis连接成功")
+	logger.Log.Info("redis connection successful")
 }

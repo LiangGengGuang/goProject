@@ -2,10 +2,10 @@ package module
 
 import (
 	"encoding/json"
-	"fmt"
 	"project/9-database/db"
+	"project/9-database/logger"
+	"project/9-database/utils"
 	"strconv"
-	"time"
 )
 
 // @Description
@@ -13,13 +13,13 @@ import (
 // @Date 2022/6/19
 
 type Goods struct {
-	Id         int        `json:"id"`
-	Name       string     `json:"name"`
-	Number     int        `json:"number"`
-	Price      float64    `json:"price"`
-	Unit       string     `json:"unit"`
-	CreateTime *time.Time `gorm:"->" json:"create_time"` //只允许读取
-	UpdateTime *time.Time `gorm:"->" json:"update_time"` //只允许读取
+	Id         int           `json:"id"`
+	Name       string        `json:"name"`
+	Number     int           `json:"number"`
+	Price      float64       `json:"price"`
+	Unit       string        `json:"unit"`
+	CreateTime *utils.MyTime `gorm:"->" json:"create_time"` //只允许读取
+	UpdateTime *utils.MyTime `gorm:"->" json:"update_time"` //只允许读取
 }
 
 func (g *Goods) TableName() string {
@@ -29,9 +29,9 @@ func (g *Goods) TableName() string {
 func (g *Goods) QueryAll() []*Goods {
 
 	var goods []*Goods
-	result := db.MDB.Find(&goods)
+	result := db.MDB.Order("id desc").Find(&goods)
 	if result.Error != nil {
-		fmt.Println("QueryAll fail:", result.Error)
+		logger.Log.Errorf("QueryAll fail: %v", result.Error)
 		return nil
 	}
 	return goods
@@ -44,18 +44,23 @@ func (g *Goods) QueryById(id int) *Goods {
 	val := g.Get(strconv.Itoa(id))
 	if val != "" {
 		json.Unmarshal([]byte(val), &goods)
-	} else {
-		//result := db.MDB.Where("id=?", id).Find(&Goods)
-		result := db.MDB.Find(&goods, "id=?", id)
-		if result.Error != nil {
-			fmt.Println("QueryById fail:", result.Error)
-			return nil
-		}
+		return goods
+	}
+	result := db.MDB.Where("id=?", id).Find(&goods)
+	//result := db.MDB.Find(&goods, "id=?", id)
+	//db.MDB.Select("name","number").Find(&goods, "id=?", id) 只显示特定字段
+	if result.Error != nil {
+		logger.Log.Errorf("QueryById id: %d fail: %v", id, result.Error)
+		return nil
+	}
+	if goods.Id != 0 {
 		if marshal, err := json.Marshal(goods); err == nil {
 			g.Set(strconv.Itoa(id), marshal)
 		}
+		return goods
+	} else {
+		return nil
 	}
-	return goods
 }
 
 func (g *Goods) Insert(goods *Goods) bool {
@@ -66,12 +71,8 @@ func (g *Goods) Insert(goods *Goods) bool {
 
 	result := db.MDB.Create(&goods)
 	if result.Error != nil {
-		fmt.Println("Insert fail:", result.Error)
+		logger.Log.Errorf("Insert fail: %v", result.Error)
 		return false
-	}
-	goods = g.QueryById(goods.Id)
-	if marshal, err := json.Marshal(goods); err == nil {
-		g.Set(strconv.Itoa(goods.Id), marshal)
 	}
 	return true
 }
@@ -80,13 +81,10 @@ func (g *Goods) UpdateById(goods *Goods) bool {
 
 	result := db.MDB.Model(&goods).Updates(goods)
 	if result.Error != nil {
-		fmt.Println("UpdateById fail:", result.Error)
+		logger.Log.Errorf("UpdateById id: %d fail:%v", goods.Id, result.Error)
 		return false
 	}
 	goods = g.QueryById(goods.Id)
-	if marshal, err := json.Marshal(goods); err == nil {
-		g.Set(strconv.Itoa(goods.Id), marshal)
-	}
 	return true
 }
 
@@ -96,7 +94,7 @@ func (g *Goods) DeleteById(id int) bool {
 
 	result := db.MDB.Where("id =?", id).Delete(&Goods{})
 	if result.Error != nil {
-		fmt.Println("DeleteById fail:", result.Error)
+		logger.Log.Errorf("DeleteById id: %d fail:%v", id, result.Error)
 		return false
 	}
 	return true
@@ -105,16 +103,15 @@ func (g *Goods) DeleteById(id int) bool {
 func (g *Goods) Set(key string, val interface{}) {
 	result, err := db.RDB.Set(db.RDB.Context(), key, val, 0).Result()
 	if err != nil {
-		fmt.Println("redis Set error：", err)
+		logger.Log.Errorf("redis Set error：%v", err)
 	} else {
-		fmt.Println("redis Set success：", result)
+		logger.Log.Infof("redis key: %s set success：%v", key, result)
 	}
 }
 
 func (g *Goods) Get(key string) string {
 	val, err := db.RDB.Get(db.RDB.Context(), key).Result()
 	if err != nil {
-		fmt.Println("redis Get error：", err)
 		return ""
 	}
 	return val
@@ -123,8 +120,8 @@ func (g *Goods) Get(key string) string {
 func (g *Goods) Del(key string) {
 	result, err := db.RDB.Del(db.RDB.Context(), key).Result()
 	if err != nil {
-		fmt.Println("redis Del error：", err)
+		logger.Log.Errorf("redis key: %s del error：%v", key, err)
 	} else {
-		fmt.Println("redis Del success：", result)
+		logger.Log.Infof("redis key: %s del success：%v", key, result)
 	}
 }

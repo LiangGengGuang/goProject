@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"project/9-database/controller"
 	"project/9-database/db"
+	"project/9-database/logger"
 )
 
 // @Description
@@ -13,10 +14,12 @@ import (
 
 func main() {
 
+	//启动gin
+	logger.Log.Info("gin server starting...")
+
+	gin.SetMode(gin.ReleaseMode)
 	c := gin.Default()
-
 	controller.ApiInit(c)
-
 	portStr := fmt.Sprintf(":%d", db.GlobalCfg.Port)
 	c.Run(portStr)
 }
