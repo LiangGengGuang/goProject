@@ -20,7 +20,6 @@ func init() {
 	addr := fmt.Sprintf("%s:%d", GlobalCfg.RedisCfg.Uri, GlobalCfg.RedisCfg.Port)
 	RDB = redis.NewClient(&redis.Options{
 		Addr:     addr,
-		Username: GlobalCfg.RedisCfg.UserName,
 		Password: GlobalCfg.RedisCfg.Password,
 		DB:       GlobalCfg.RedisCfg.DB,
 	})

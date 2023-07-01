@@ -11,8 +11,7 @@
   "redisCfg": {
     "Uri": "127.0.0.1",
     "Port": 6379,
-    "UserName": null,
-    "Password": null,
+    "Password": "Leung@lianggg",
     "DB": 0
   }
 }

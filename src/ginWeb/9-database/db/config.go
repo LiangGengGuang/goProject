@@ -62,7 +62,6 @@ func init() {
 	redisCfg := &RedisConfig{
 		Uri:      "",
 		Port:     6379,
-		UserName: "",
 		Password: "",
 		DB:       1,
 	}
