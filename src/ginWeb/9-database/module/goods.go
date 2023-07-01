@@ -18,7 +18,9 @@ type Goods struct {
 	Number     int           `json:"number"`
 	Price      float64       `json:"price"`
 	Unit       string        `json:"unit"`
+	Creator    int           `json:"creator"`
 	CreateTime *utils.MyTime `gorm:"->" json:"create_time"` //只允许读取
+	Editor     int           `json:"editor"`
 	UpdateTime *utils.MyTime `gorm:"->" json:"update_time"` //只允许读取
 }
 

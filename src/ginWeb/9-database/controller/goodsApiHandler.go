@@ -33,6 +33,9 @@ func QueryById(c *gin.Context) {
 func Insert(c *gin.Context) {
 	var goods = module.Goods{}
 	c.BindJSON(&goods)
+	userId := GetCurrentUser(c).Id
+	goods.Creator = userId
+	goods.Editor = userId
 	if goods.Insert(&goods) {
 		c.JSON(http.StatusOK, models.SuccessResult("Successfully saved"))
 	} else {
@@ -43,6 +46,7 @@ func Insert(c *gin.Context) {
 func UpdateById(c *gin.Context) {
 	var goods = module.Goods{}
 	c.BindJSON(&goods)
+	goods.Editor = GetCurrentUser(c).Id
 	if goods.UpdateById(&goods) {
 		c.JSON(http.StatusOK, models.SuccessResult("update success"))
 	} else {
