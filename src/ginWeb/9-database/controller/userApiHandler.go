@@ -5,6 +5,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
 	models "project/5-models"
+	"project/9-database/db"
+	"project/9-database/logger"
 	"project/9-database/module"
 	"time"
 )
@@ -90,12 +92,31 @@ func Login(c *gin.Context) {
 
 // Logout 退出
 func Logout(c *gin.Context) {
+	authToken := c.GetHeader("Authorization")
+	if authToken == "" {
+		logger.Log.Error("Authorization does not exist")
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("Authorization does not exist"))
+		return
+	}
+	//token加入token黑名单
+	if _, err := db.RDB.Set(db.RDB.Context(), authToken, "", 30*time.Minute).Result(); err != nil {
+		logger.Log.Errorf("blacklist add failed:%v", err)
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("blacklist add failed"))
+		return
+	}
 	RemoveCurrentUser(c)
 	c.JSON(http.StatusOK, models.SuccessResult("Logout successfully"))
 }
 
 // RefreshToken 刷新token
 func RefreshToken(c *gin.Context) {
+	authToken := c.GetHeader("Authorization")
+	if authToken == "" {
+		logger.Log.Error("Authorization does not exist")
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("Authorization does not exist"))
+		return
+	}
+	//生成新token
 	userInfo := GetCurrentUser(c)
 	user := &module.User{
 		Id:       userInfo.Id,
@@ -103,7 +124,14 @@ func RefreshToken(c *gin.Context) {
 	}
 	token, err := GenerateJWT(user)
 	if err != nil {
+		logger.Log.Errorf("Refresh token token failed:%v", err)
 		c.JSON(http.StatusInternalServerError, models.ErrorResult("Refresh token token failed"))
+		return
+	}
+	//旧token加入token黑名单
+	if _, err := db.RDB.Set(db.RDB.Context(), authToken, "", 30*time.Minute).Result(); err != nil {
+		logger.Log.Errorf("blacklist add failed:%v", err)
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("blacklist add failed"))
 		return
 	}
 	c.JSON(http.StatusOK, models.SuccessResult(token))

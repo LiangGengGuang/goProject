@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	models "project/5-models"
+	"project/9-database/db"
 	"project/9-database/logger"
 )
 
@@ -14,14 +15,28 @@ import (
 
 //请求头token校验
 func apiHeadMiddleware(c *gin.Context) {
-	auth := c.GetHeader("Authorization")
-	if auth == "" {
+	authToken := c.GetHeader("Authorization")
+	if authToken == "" {
 		logger.Log.Error("Authorization does not exist")
 		c.JSON(http.StatusInternalServerError, models.ErrorResult("Authorization does not exist"))
 		c.Abort()
 		return
 	}
-	userJWT, err := ParseJWT(auth)
+	//token黑名单校验
+	result, err := db.RDB.Exists(db.RDB.Context(), authToken).Result()
+	if err != nil {
+		logger.Log.Errorf("blacklist add failed:%v", err)
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("Authorization does not exist"))
+		c.Abort()
+		return
+	}
+	if result == 1 {
+		c.JSON(http.StatusInternalServerError, models.ErrorResult("Authorization already expired"))
+		c.Abort()
+		return
+	}
+	//token解析
+	userJWT, err := ParseJWT(authToken)
 	if err != nil {
 		logger.Log.Errorf("token parse failed：%v", err)
 		c.JSON(http.StatusInternalServerError, models.ErrorResult("token parse failed"))
