@@ -12,7 +12,7 @@ service Greeter {
 
 // 请求消息
 message HelloRequest {
-  string name = 1;
+  string name = 1; //唯一的标识符。标识符用来在消息的二进制格式中识别各个字段，一旦使用就不能够再改变
 }
 
 // 响应消息
