@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
-	"grpc/example/client/rpc"
+	"grpc/client/rpc"
 	"net"
 )
 

@@ -1,4 +1,4 @@
-module emample
+module grpc
 
 go 1.18
 
